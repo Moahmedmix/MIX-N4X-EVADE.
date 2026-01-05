@@ -1,4 +1,4 @@
--- MIX EVADE HUB v3.0 - Complete Script
+-- MIX EVADE HUB v3.0 - Fixed Version
 -- Created by MIX
 -- For Roblox Evade
 
@@ -11,7 +11,6 @@ local function LoadKavo()
    if success then
       return lib
    else
-      -- Fallback to local version
       warn("Failed to load Kavo from web, using backup...")
       local backup = [[
       -- Minimal UI Library Backup
@@ -23,10 +22,20 @@ local function LoadKavo()
                return {
                   NewSection = function(sectionName)
                      return {
-                        NewToggle = function() return function() end end,
-                        NewButton = function() return function() end end,
-                        NewSlider = function() return function() end end,
-                        NewLabel = function() end,
+                        NewToggle = function(name, desc, callback)
+                           local btn = {Name = name}
+                           return btn
+                        end,
+                        NewButton = function(name, desc, callback)
+                           local btn = {Name = name}
+                           btn.Callback = callback
+                           return btn
+                        end,
+                        NewSlider = function(name, desc, min, max, callback)
+                           local slider = {Value = min}
+                           return slider
+                        end,
+                        NewLabel = function(text) print("Label: " .. text) end,
                         NewDropdown = function() return function() end end,
                         NewTextBox = function() return function() end end
                      }
@@ -50,6 +59,21 @@ end
 
 local Library = LoadKavo()
 local Window = Library.CreateLib("MIX EVADE HUB v3.0", "DarkTheme")
+-- ================ END OF FIXED LOADER ================
+
+local MIX_HUB = {
+    Version = "3.0",
+    Author = "MIX",
+    Theme = "Dark"
+    -- تم إزالة ToggleKey لأن Kavo لا تدعمه
+}
+
+-- Notification Function
+local function Notify(title, message)
+    Library:Notification(title, message, 5)
+end
+
+-- باقي الكود كما هو بدون تغيير...
 -- ================ END OF FIXED LOADER ================
 
 local MIX_HUB = {
