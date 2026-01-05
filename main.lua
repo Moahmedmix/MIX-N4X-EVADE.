@@ -401,14 +401,13 @@ Vision:NewToggle("No Camera Shake", "Remove camera effects", function(state)
         Notify("Camera", "Shake removed")
     end
 end)
-
 -- FPS Boost / No Render
 Vision:NewToggle("FPS Boost", "Improve performance", function(state)
     if state then
         local settings = game:GetService("UserGameSettings")
         settings.SavedQualityLevel = 1
         settings.MasterVolume = 0
-        
+
         for _, obj in pairs(game.Workspace:GetDescendants()) do
             if obj:IsA("Part") and not obj.Parent:FindFirstChild("Humanoid") then
                 obj.Transparency = 0.5
@@ -416,7 +415,20 @@ Vision:NewToggle("FPS Boost", "Improve performance", function(state)
             end
         end
         
-        Notify("FPS Boost", "Performance optimized")
+        Notify("FPS Boost", "Performance optimized - Graphics reduced")
+    else
+        local settings = game:GetService("UserGameSettings")
+        settings.SavedQualityLevel = 10
+        settings.MasterVolume = 1
+        
+        for _, obj in pairs(game.Workspace:GetDescendants()) do
+            if obj:IsA("Part") and not obj.Parent:FindFirstChild("Humanoid") then
+                obj.Transparency = 0
+                obj.Material = Enum.Material.SmoothPlastic
+            end
+        end
+        
+        Notify("FPS Boost", "Graphics restored to normal")
     end
 end)
 
