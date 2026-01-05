@@ -127,7 +127,6 @@ Survivability:NewToggle("Anti-Down", "Prevent being downed", function(state)
     end
 end)
 
--- باقي الكود يبقى كما هو تماما...
 -- Auto Use Cola
 Survivability:NewToggle("Auto Use Cola", "Automatically drink cola", function(state)
     _G.AutoCola = state
@@ -149,7 +148,51 @@ Survivability:NewToggle("Auto Use Cola", "Automatically drink cola", function(st
     end
 end)
 
--- ... وكل باقي السكريبت كما كتبته سابقا
+-- Auto Escape on low HP (MISSING FUNCTION - ADDED)
+Survivability:NewToggle("Auto Escape", "Run away when low HP", function(state)
+    _G.AutoEscape = state
+    if state then
+        Notify("Auto Escape", "Will escape at low HP")
+    end
+    while _G.AutoEscape do
+        task.wait(0.5)
+        pcall(function()
+            local char = game.Players.LocalPlayer.Character
+            if char and char.Humanoid.Health < 30 then
+                char:MoveTo(char.HumanoidRootPart.Position + Vector3.new(0, 50, 0))
+                Notify("Auto Escape", "Escaping to safety!")
+            end
+        end)
+    end
+end)
+
+-- Remove barriers (MISSING FUNCTION - ADDED)
+Survivability:NewButton("Remove Barriers", "Delete all obstacles and walls", function()
+    local count = 0
+    for _, obj in pairs(game.Workspace:GetDescendants()) do
+        if obj.Name:match("Barrier") or obj.Name:match("Wall") or obj.Name:match("Obstacle") then
+            obj:Destroy()
+            count = count + 1
+        end
+    end
+    Notify("Barriers Removed", "Deleted " .. count .. " obstacles")
+end)
+
+-- No water damage (MISSING FUNCTION - ADDED)
+Survivability:NewToggle("No Water Damage", "Immune to water damage", function(state)
+    if state then
+        Notify("Water Immunity", "Activated")
+        game:GetService("RunService").Heartbeat:Connect(function()
+            pcall(function()
+                local char = game.Players.LocalPlayer.Character
+                if char and char.HumanoidRootPart.Position.Y < -5 then
+                    char.Humanoid.Health = 100
+                end
+            end)
+        end)
+    end
+end)
+
 -- ===================== MOBILITY TAB =====================
 local MobilityTab = Window:NewTab("Mobility")
 local Mobility = MobilityTab:NewSection("⚡ Movement Modifications")
@@ -401,6 +444,7 @@ Vision:NewToggle("No Camera Shake", "Remove camera effects", function(state)
         Notify("Camera", "Shake removed")
     end
 end)
+
 -- FPS Boost / No Render
 Vision:NewToggle("FPS Boost", "Improve performance", function(state)
     if state then
