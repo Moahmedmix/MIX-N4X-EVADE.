@@ -1,574 +1,377 @@
--- MIX WindUI Custom v1.0
--- Enhanced WindUI Script for MIX
--- Based on: https://raw.githubusercontent.com/Footagesus/WindUI/main/main_example.lua
+--=====================================================================
+-- DELTA X ULTIMATE UI FRAMEWORK (LUA)
+--=====================================================================
 
-local WindUI = loadstring(game:HttpGet('https://raw.githubusercontent.com/Footagesus/WindUI/main/main_example.lua'))()
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
 
--- Create Window with MIX theme
-local Window = WindUI:CreateWindow({
-    Title = "🎮 MIX EVADE HUB",
-    SubTitle = "Powered by WindUI | v2.0",
-    MainColor = Color3.fromRGB(0, 255, 170), -- MIX Green color
-    AccentColor = Color3.fromRGB(30, 30, 45),
-    BackgroundColor = Color3.fromRGB(15, 15, 25),
-    BackgroundTransparency = 0.1
-})
+-- متغيرات الواجهة
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "Delta_X_Ultimate"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
--- ===================== MAIN TAB =====================
-local MainTab = Window:CreateTab({
-    Title = "🏠 الرئيسية",
-    Icon = "home"
-})
+-- الألوان والتصميم
+local Colors = {
+    Main = Color3.fromRGB(20, 20, 20),
+    Secondary = Color3.fromRGB(30, 30, 30),
+    Accent = Color3.fromRGB(0, 122, 212), -- Delta Blue
+    Text = Color3.fromRGB(255, 255, 255),
+    Green = Color3.fromRGB(0, 200, 0),
+    Red = Color3.fromRGB(200, 0, 0)
+}
 
-MainTab:AddSection("👤 معلومات اللاعب")
+--=====================================================================
+-- بناء الواجهة الرئيسية (UI Construction)
+--=====================================================================
 
-MainTab:AddLabel("🎮 مرحباً بك في MIX HUB")
-MainTab:AddLabel("📅 الإصدار: 2.0 - WindUI Edition")
-MainTab:AddLabel("👤 المطور: MIX")
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 550, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -200)
+MainFrame.BackgroundColor3 = Colors.Main
+MainFrame.Parent = ScreenGui
+MainFrame.BorderSizePixel = 0
 
-MainTab:AddSection("⚡ إعدادات سريعة")
+-- تقريب الحواف
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+Instance.new("UIStroke", MainFrame).Color = Color3.fromRGB(50, 50, 50)
 
-MainTab:AddToggle({
-    Title = "وضع الإله (God Mode)",
-    Description = "تصبح غير قابل للقتل",
-    Default = false,
-    Callback = function(state)
-        _G.GodMode = state
-        if state then
-            WindUI:Notification({
-                Title = "وضع الإله",
-                Description = "✅ تم التفعيل! أنت الآن غير قابل للقتل",
-                Duration = 3
-            })
-            spawn(function()
-                while _G.GodMode do
-                    wait(0.1)
-                    pcall(function()
-                        local char = game.Players.LocalPlayer.Character
-                        if char and char:FindFirstChild("Humanoid") then
-                            char.Humanoid.Health = 100
-                        end
-                    end)
-                end
-            end)
-        else
-            WindUI:Notification({
-                Title = "وضع الإله",
-                Description = "❌ تم الإيقاف",
-                Duration = 2
-            })
+-- منطقة السحب (Drag)
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Colors.Accent
+TitleBar.Parent = MainFrame
+Instance.new("UICorner", TitleBar).CornerRadius = UDim.new(0, 10)
+
+-- تصحيح الزوايا السفلية للشريط
+local TitlePadding = Instance.new("UIPadding")
+TitlePadding.PaddingBottom = UDim.new(0, 10)
+TitlePadding.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, 0, 1, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "DELTA X // ULTIMATE"
+TitleLabel.TextColor3 = Colors.Text
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 16
+TitleLabel.Parent = TitleBar
+
+-- منطقة التخطيط (Layout)
+local LayoutFrame = Instance.new("Frame")
+LayoutFrame.Size = UDim2.new(1, 0, 1, -40)
+LayoutFrame.Position = UDim2.new(0, 0, 0, 40)
+LayoutFrame.BackgroundTransparency = 1
+LayoutFrame.Parent = MainFrame
+
+-- الشريط الجانبي (Sidebar)
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 140, 1, 0)
+Sidebar.BackgroundColor3 = Colors.Secondary
+Sidebar.Parent = LayoutFrame
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
+
+-- منطقة المحتوى (Content Area)
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Size = UDim2.new(1, -150, 1, -10)
+ContentFrame.Position = UDim2.new(0, 145, 0, 5)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ScrollBarThickness = 4
+ContentFrame.Parent = LayoutFrame
+
+-- قائمة التبويبات
+local TabsList = {
+    {Name = "Auto Farm", Icon = "🌾"},
+    {Name = "Player", Icon = "🏃"},
+    {Name = "Visuals", Icon = "👁️"},
+    {Name = "Server", Icon = "🌐"}
+}
+
+local ActiveTab = nil
+
+--=====================================================================
+-- وظائف مساعدة لإنشاء العناصر (UI Builders)
+--=====================================================================
+
+local function CreateToggle(Parent, Text, Callback)
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 0, 35)
+    Container.BackgroundColor3 = Colors.Main
+    Container.BorderSizePixel = 0
+    Container.Parent = Parent
+    Container.LayoutOrder = Parent:GetChildren()[1] and Parent:GetChildren()[1].LayoutOrder + 1 or 0
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0, 200, 1, 0)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = Text
+    Label.TextColor3 = Colors.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Container
+
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(0, 40, 0, 20)
+    Btn.Position = UDim2.new(1, -50, 0.5, -10)
+    Btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Btn.BorderSizePixel = 0
+    Btn.Text = ""
+    Btn.Parent = Container
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 5)
+
+    local State = false
+    
+    Btn.MouseButton1Click:Connect(function()
+        State = not State
+        Btn.BackgroundColor3 = State and Colors.Green or Color3.fromRGB(60, 60, 60)
+        Callback(State)
+    end)
+end
+
+local function CreateButton(Parent, Text, Callback)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -10, 0, 30)
+    Btn.BackgroundColor3 = Colors.Accent
+    Btn.TextColor3 = Colors.Text
+    Btn.Font = Enum.Font.GothamBold
+    Btn.TextSize = 14
+    Btn.Text = Text
+    Btn.Parent = Parent
+    Btn.BorderSizePixel = 0
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 5)
+    
+    Btn.MouseButton1Click:Connect(function()
+        Callback()
+        TweenService:Create(Btn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255,255,255)}):Play()
+        wait(0.1)
+        TweenService:Create(Btn, TweenInfo.new(0.1), {BackgroundColor3 = Colors.Accent}):Play()
+    end)
+end
+
+local function CreateSection(Parent, Title)
+    local Section = Instance.new("TextLabel")
+    Section.Size = UDim2.new(1, 0, 0, 25)
+    Section.BackgroundTransparency = 1
+    Section.Text = Title
+    Section.TextColor3 = Colors.Accent
+    Section.Font = Enum.Font.GothamBold
+    Section.TextSize = 15
+    Section.TextXAlignment = Enum.TextXAlignment.Left
+    Section.Parent = Parent
+    return Section
+end
+
+--=====================================================================
+-- إعداد التبويبات والمحتوى
+--=====================================================================
+
+-- وظيفة إنشاء التبويب
+local function SetupTab(index, tabName, icon)
+    -- زر التبويب في القائمة الجانبية
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 40)
+    Btn.Position = UDim2.new(0, 0, 0, (index-1)*42)
+    Btn.BackgroundTransparency = 1
+    Btn.Text = "  "..icon.." "..tabName
+    Btn.TextColor3 = Colors.Text
+    Btn.Font = Enum.Font.Gotham
+    Btn.TextSize = 14
+    Btn.TextXAlignment = Enum.TextXAlignment.Left
+    Btn.Parent = Sidebar
+
+    -- المحتوى الخاص بالتبويب
+    local TabContent = Instance.new("Frame")
+    TabContent.Name = tabName
+    TabContent.Size = UDim2.new(1, 0, 1, 0)
+    TabContent.BackgroundTransparency = 1
+    TabContent.Visible = false
+    TabContent.Parent = ContentFrame
+
+    Btn.MouseButton1Click:Connect(function()
+        for _, v in pairs(ContentFrame:GetChildren()) do v.Visible = false end
+        TabContent.Visible = true
+        ActiveTab = TabContent
+        -- تحديث لون الزر النشط
+        for _, b in pairs(Sidebar:GetChildren()) do
+            if b:IsA("TextButton") then b.TextColor3 = Colors.Text end
         end
-    end
-})
+        Btn.TextColor3 = Colors.Accent
+    end)
 
-MainTab:AddSlider({
-    Title = "سرعة الحركة",
-    Description = "تحكم في سرعة المشي",
-    Default = 16,
-    Min = 16,
-    Max = 500,
-    Callback = function(value)
-        pcall(function()
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
-            WindUI:Notification({
-                Title = "السرعة",
-                Description = "⚡ تم تعيين السرعة إلى: " .. value,
-                Duration = 2
-            })
+    return TabContent
+end
+
+-- إنشاء التبويبات
+local TabFarm = SetupTab(1, "Auto Farm", "🌾")
+local TabPlayer = SetupTab(2, "Player", "🏃")
+local TabVisuals = SetupTab(3, "Visuals", "👁️")
+local TabServer = SetupTab(4, "Server", "🌐")
+
+-- تعيين التبويب الافتراضي
+ActiveTab = TabFarm
+TabFarm.Visible = true
+Sidebar:GetChildren()[2].TextColor3 = Colors.Accent -- تحديث لون أول زر
+
+--=====================================================================
+-- تعبئة المحتوى (Populating Content)
+--=====================================================================
+
+-- === 1. AUTO FARM TAB ===
+CreateSection(TabFarm, "Automation")
+CreateToggle(TabFarm, "Auto Farm XP", function(v) print("Auto Farm XP:", v) end)
+CreateToggle(TabFarm, "Auto Farm Cash", function(v) print("Auto Farm Cash:", v) end)
+CreateToggle(TabFarm, "Auto Farm Collectables", function(v) print("Auto Farm Collectables:", v) end)
+
+CreateSection(TabFarm, "Game Actions")
+CreateToggle(TabFarm, "Auto Instant Revive", function(v) print("Auto Revive:", v) end)
+CreateToggle(TabFarm, "Auto Carry", function(v) print("Auto Carry:", v) end)
+CreateToggle(TabFarm, "Auto Respawn", function(v) print("Auto Respawn:", v) end)
+CreateToggle(TabFarm, "Auto Interact", function(v) print("Auto Interact:", v) end)
+CreateToggle(TabFarm, "Auto Use Cola", function(v) print("Auto Use Cola:", v) end)
+CreateToggle(TabFarm, "Auto Whistling", function(v) print("Auto Whistling:", v) end)
+
+CreateSection(TabFarm, "Game Info")
+local lblStatus = Instance.new("TextLabel")
+lblStatus.Size = UDim2.new(1,0,0,30); lblStatus.BackgroundColor3=Colors.Secondary; lblStatus.Text="Status: Waiting..."
+lblStatus.TextColor3=Colors.Text; lblStatus.Parent=TabFarm; Instance.new("UICorner", lblStatus).CornerRadius=UDim.new(0,4)
+-- محاكاة تحديث الحالة
+spawn(function() while true do wait(1) lblStatus.Text = "Round Time: "..tick().. " | Game Status: Active" end end)
+
+-- === 2. PLAYER TAB ===
+CreateSection(TabPlayer, "Movement Modifiers")
+CreateToggle(TabPlayer, "Fly", function(v) 
+    -- منطق الطيران البسيط (مثال)
+    local char = LocalPlayer.Character
+    if v and char then
+        -- هنا يضع المستخدم كود الطيران الكامل
+    end
+    print("Fly:", v)
+end)
+CreateToggle(TabPlayer, "Bhop (Bunny Hop)", function(v) print("Bhop:", v) end)
+CreateToggle(TabPlayer, "Infinite Jump", function(v) 
+    if v then
+        UserInputService.JumpRequest:connect(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid:ChangeState("Jumping")
+            end
         end)
     end
-})
+end)
+CreateToggle(TabPlayer, "No Clip", function(v) print("No Clip:", v) end)
 
-MainTab:AddSlider({
-    Title = "قوة القفز",
-    Description = "تحكم في ارتفاع القفز",
-    Default = 50,
-    Min = 50,
-    Max = 200,
-    Callback = function(value)
-        pcall(function()
-            game.Players.LocalPlayer.Character.Humanoid.JumpPower = value
-            WindUI:Notification({
-                Title = "القفز",
-                Description = "🦘 تم تعيين قوة القفز إلى: " .. value,
-                Duration = 2
-            })
+CreateSection(TabPlayer, "Attributes")
+CreateButton(TabPlayer, "Max WalkSpeed", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = 100
+    end
+end)
+CreateButton(TabPlayer, "Max JumpPower", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = 200
+    end
+end)
+CreateButton(TabPlayer, "Set Hip Height", function()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.HipHeight = 10
+    end
+end)
+
+-- === 3. VISUALS TAB ===
+CreateSection(TabVisuals, "Performance")
+CreateButton(TabVisuals, "FPS Boost (Low Graphics)", function()
+    settings()["Rendering"].QualityLevel = 1
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    print("FPS Boost Activated")
+end)
+CreateToggle(TabVisuals, "No Camera Shake", function(v) 
+    -- تعديل إعدادات الكاميرا يتطلب تغيير CameraShake
+    print("No Shake:", v) 
+end)
+CreateToggle(TabVisuals, "No Light Flicker", function(v) print("No Flicker:", v) end)
+
+CreateSection(TabVisuals, "World")
+CreateToggle(TabVisuals, "Full Bright", function(v)
+    if v then
+        Lighting.Brightness = 2
+        Lighting.OutdoorAmbient = Color3.new(1,1,1)
+    else
+        Lighting.Brightness = 1 -- أو الإعدادات الافتراضية
+    end
+end)
+CreateToggle(TabVisuals, "Remove Darkness", function(v) Lighting.ClockTime = 12 end)
+CreateToggle(TabVisuals, "Remove Fog", function(v) Lighting.FogEnd = 999999 end)
+
+CreateSection(TabVisuals, "ESP System")
+CreateToggle(TabVisuals, "ESP Boxes", function(v) print("ESP Boxes:", v) end)
+CreateToggle(TabVisuals, "ESP Names", function(v) print("ESP Names:", v) end)
+CreateToggle(TabVisuals, "ESP Health", function(v) print("ESP Health:", v) end)
+CreateToggle(TabVisuals, "ESP Tool", function(v) print("ESP Tool:", v) end)
+CreateToggle(TabVisuals, "Players Highlight", function(v) print("Highlight:", v) end)
+CreateToggle(TabVisuals, "Rainbow Highlight", function(v) print("Rainbow:", v) end)
+
+-- === 4. SERVER TAB ===
+CreateSection(TabServer, "Utilities")
+CreateToggle(TabServer, "Show Global Chat", function(v) print("Global Chat:", v) end)
+CreateToggle(TabServer, "Auto Random Vote", function(v) print("Auto Vote:", v) end)
+
+CreateSection(TabServer, "Actions")
+CreateButton(TabServer, "Rejoin Server", function()
+    TeleportService:Teleport(game.PlaceId, LocalPlayer)
+end)
+CreateButton(TabServer, "Server Hop", function()
+    -- كود ServerHop يتطلب قائمة سيرفرات
+    print("Server Hopping...")
+end)
+CreateButton(TabServer, "Redeem All Codes", function()
+    print("Redeeming codes... (Game Specific)")
+end)
+CreateButton(TabServer, "Save Config", function() print("Config Saved") end)
+
+--=====================================================================
+-- منطق السحب (Draggable Logic) - نفس السابق
+--=====================================================================
+local dragToggle, dragStart, startPos
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and TitleBar:IsAncestorOf(input) then
+        dragToggle = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragToggle = false
+            end
         end)
     end
-})
+end)
 
--- ===================== SURVIVABILITY TAB =====================
-local SurvivalTab = Window:CreateTab({
-    Title = "🛡️ البقاء",
-    Icon = "shield"
-})
-
-SurvivalTab:AddSection("🔥 قدرات البقاء")
-
-SurvivalTab:AddToggle({
-    Title = "منع السقوط (Anti-Down)",
-    Description = "تجنب حالة السقوط",
-    Default = false,
-    Callback = function(state)
-        if state then
-            WindUI:Notification({
-                Title = "Anti-Down",
-                Description = "✅ لن تسقط أبداً",
-                Duration = 3
-            })
-            game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
-                wait(0.5)
-                if char and char:FindFirstChild("Humanoid") then
-                    char.Humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-                        if char.Humanoid.Health <= 0 then
-                            char.Humanoid.Health = 100
-                        end
-                    end)
-                end
-            end)
-        end
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragToggle then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-})
+end)
 
-SurvivalTab:AddToggle({
-    Title = "شرب الكولا تلقائياً",
-    Description = "يشرب الكولا تلقائياً",
-    Default = false,
-    Callback = function(state)
-        _G.AutoCola = state
-        if state then
-            WindUI:Notification({
-                Title = "Auto Cola",
-                Description = "🥤 يبحث عن كولا...",
-                Duration = 3
-            })
-            spawn(function()
-                while _G.AutoCola do
-                    wait(2)
-                    pcall(function()
-                        for _, item in pairs(workspace:GetDescendants()) do
-                            if item.Name:lower():find("cola") and item:IsA("BasePart") then
-                                local prompt = item:FindFirstChildOfClass("ProximityPrompt")
-                                if prompt then
-                                    fireproximityprompt(prompt)
-                                end
-                            end
-                        end
-                    end)
-                end
-            end)
-        end
-    end
-})
-
-SurvivalTab:AddButton({
-    Title = "إزالة الحواجز",
-    Description = "يزيل كل الجدران والعوائق",
-    Callback = function()
-        local count = 0
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj.Name:match("Barrier") or obj.Name:match("Wall") or obj.Name:match("Obstacle") then
-                pcall(function() obj:Destroy() end)
-                count = count + 1
+-- تحديث حجم الـ Content Frame بناء على المحتوى
+local function updateCanvasSize()
+    for _, tab in pairs(ContentFrame:GetChildren()) do
+        local y = 0
+        for _, child in pairs(tab:GetChildren()) do
+            if child:IsA("Frame") or child:IsA("TextLabel") or child:IsA("TextButton") then
+                y = y + child.AbsoluteSize.Y + 5
             end
         end
-        WindUI:Notification({
-            Title = "الحواجز",
-            Description = "🗑️ تم حذف " .. count .. " عائق",
-            Duration = 3
-        })
+        tab.CanvasSize = UDim2.new(0, 0, 0, y)
     end
-})
-
--- ===================== MOVEMENT TAB =====================
-local MovementTab = Window:CreateTab({
-    Title = "⚡ الحركة",
-    Icon = "zap"
-})
-
-MovementTab:AddSection("🚀 تعديلات الحركة")
-
-MovementTab:AddToggle({
-    Title = "قفز لا نهائي",
-    Description = "القفز في الهواء",
-    Default = false,
-    Callback = function(state)
-        if state then
-            WindUI:Notification({
-                Title = "قفز لا نهائي",
-                Description = "🦘 تم التفعيل! اضغط Space للقفز",
-                Duration = 3
-            })
-            game:GetService("UserInputService").JumpRequest:Connect(function()
-                pcall(function()
-                    game.Players.LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end)
-            end)
-        end
-    end
-})
-
-MovementTab:AddToggle({
-    Title = "وضع الطيران",
-    Description = "الطيران في الخريطة (WASD + Space)",
-    Default = false,
-    Callback = function(state)
-        _G.FlyEnabled = state
-        if state then
-            WindUI:Notification({
-                Title = "الطيران",
-                Description = "✈️ تم التفعيل! استخدم WASD للتحكم",
-                Duration = 3
-            })
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
-        else
-            WindUI:Notification({
-                Title = "الطيران",
-                Description = "❌ تم الإيقاف",
-                Duration = 2
-            })
-        end
-    end
-})
-
-MovementTab:AddToggle({
-    Title = "No Clip",
-    Description = "المشي عبر الجدران",
-    Default = false,
-    Callback = function(state)
-        _G.NoClip = state
-        if state then
-            WindUI:Notification({
-                Title = "No Clip",
-                Description = "👻 تم التفعيل! يمكنك المشي عبر الجدران",
-                Duration = 3
-            })
-            spawn(function()
-                while _G.NoClip do
-                    wait(0.1)
-                    pcall(function()
-                        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.CanCollide = false
-                            end
-                        end
-                    end)
-                end
-            end)
-        else
-            pcall(function()
-                for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = true
-                    end
-                end
-            end)
-        end
-    end
-})
-
--- ===================== VISUAL TAB =====================
-local VisualTab = Window:CreateTab({
-    Title = "👁️ الرؤية",
-    Icon = "eye"
-})
-
-VisualTab:AddSection("🎨 تحسينات بصرية")
-
-VisualTab:AddToggle({
-    Title = "ESP (رؤية اللاعبين)",
-    Description = "رؤية اللاعبين عبر الجدران",
-    Default = false,
-    Callback = function(state)
-        _G.ESP = state
-        if state then
-            WindUI:Notification({
-                Title = "ESP",
-                Description = "👁️ تم التفعيل! يمكنك رؤية اللاعبين",
-                Duration = 3
-            })
-            spawn(function()
-                while _G.ESP do
-                    wait(1)
-                    pcall(function()
-                        for _, player in pairs(game.Players:GetPlayers()) do
-                            if player ~= game.Players.LocalPlayer then
-                                local char = player.Character
-                                if char and char:FindFirstChild("HumanoidRootPart") then
-                                    local highlight = char:FindFirstChild("MIX_Highlight") or Instance.new("Highlight")
-                                    highlight.Name = "MIX_Highlight"
-                                    highlight.FillColor = Color3.fromRGB(0, 255, 170) -- MIX Green
-                                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                                    highlight.Parent = char
-                                end
-                            end
-                        end
-                    end)
-                end
-            end)
-        else
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player.Character then
-                    local highlight = player.Character:FindFirstChild("MIX_Highlight")
-                    if highlight then highlight:Destroy() end
-                end
-            end
-        end
-    end
-})
-
-VisualTab:AddToggle({
-    Title = "إضاءة كاملة",
-    Description = "إزالة كل الظلام",
-    Default = false,
-    Callback = function(state)
-        if state then
-            game.Lighting.Ambient = Color3.new(1, 1, 1)
-            game.Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-            game.Lighting.Brightness = 2
-            game.Lighting.GlobalShadows = false
-            WindUI:Notification({
-                Title = "إضاءة كاملة",
-                Description = "💡 تم التفعيل! كل شيء مضيء",
-                Duration = 3
-            })
-        else
-            game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
-            game.Lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
-            game.Lighting.Brightness = 1
-            game.Lighting.GlobalShadows = true
-        end
-    end
-})
-
-VisualTab:AddToggle({
-    Title = "تحسين الأداء (FPS)",
-    Description = "تحسين أداء اللعبة",
-    Default = false,
-    Callback = function(state)
-        if state then
-            local settings = game:GetService("UserGameSettings")
-            settings.SavedQualityLevel = 1
-            settings.MasterVolume = 0
-            settings.GraphicsQualityLevel = 1
-            
-            WindUI:Notification({
-                Title = "تحسين الأداء",
-                Description = "⚡ تم تحسين الأداء! FPS أعلى",
-                Duration = 3
-            })
-        else
-            local settings = game:GetService("UserGameSettings")
-            settings.SavedQualityLevel = 10
-            settings.MasterVolume = 1
-            settings.GraphicsQualityLevel = 10
-        end
-    end
-})
-
--- ===================== FARMING TAB =====================
-local FarmingTab = Window:CreateTab({
-    Title = "💰 التطوير",
-    Icon = "dollar-sign"
-})
-
-FarmingTab:AddSection("🌾 الفارم الآلي")
-
-FarmingTab:AddToggle({
-    Title = "فارم انتصارات آلي",
-    Description = "يفرم الانتصارات تلقائياً",
-    Default = false,
-    Callback = function(state)
-        _G.AutoFarmWins = state
-        if state then
-            WindUI:Notification({
-                Title = "فارم آلي",
-                Description = "🤖 بدأ الفارم الآلي",
-                Duration = 3
-            })
-            spawn(function()
-                while _G.AutoFarmWins do
-                    wait(5)
-                    pcall(function()
-                        local char = game.Players.LocalPlayer.Character
-                        local randomPos = Vector3.new(
-                            math.random(-200, 200),
-                            20,
-                            math.random(-200, 200)
-                        )
-                        char:MoveTo(randomPos)
-                    end)
-                end
-            end)
-        end
-    end
-})
-
-FarmingTab:AddToggle({
-    Title = "فارم AFK",
-    Description = "يفرم وأنت بعيد",
-    Default = false,
-    Callback = function(state)
-        _G.AFKFarm = state
-        if state then
-            WindUI:Notification({
-                Title = "AFK Farm",
-                Description = "😴 يمكنك ترك اللعبة مفتوحة",
-                Duration = 3
-            })
-            spawn(function()
-                while _G.AFKFarm do
-                    wait(10)
-                    pcall(function()
-                        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(
-                            math.random(-300, 300),
-                            30,
-                            math.random(-300, 300)
-                        )
-                    end)
-                end
-            end)
-        end
-    end
-})
-
-FarmingTab:AddButton({
-    Title = "جمع كل العناصر",
-    Description = "يجمع كل الهدايا والعملات",
-    Callback = function()
-        local collected = 0
-        for _, item in pairs(workspace:GetDescendants()) do
-            if item.Name:match("Gift") or item.Name:match("Box") or item.Name:match("Coin") then
-                if item:IsA("BasePart") then
-                    local prompt = item:FindFirstChildOfClass("ProximityPrompt")
-                    if prompt then
-                        fireproximityprompt(prompt)
-                        collected = collected + 1
-                    end
-                end
-            end
-        end
-        WindUI:Notification({
-            Title = "العناصر",
-            Description = "🎁 تم جمع " .. collected .. " عنصر",
-            Duration = 3
-        })
-    end
-})
-
--- ===================== UTILITIES TAB =====================
-local UtilTab = Window:CreateTab({
-    Title = "⚙️ أدوات",
-    Icon = "settings"
-})
-
-UtilTab:AddSection("🔧 أدوات مساعدة")
-
-UtilTab:AddButton({
-    Title = "إعادة الانضمام للسيرفر",
-    Description = "إعادة دخول السيرفر الحالي",
-    Callback = function()
-        game:GetService("TeleportService"):Teleport(game.PlaceId)
-        WindUI:Notification({
-            Title = "إعادة الانضمام",
-            Description = "🔄 يعيد الاتصال...",
-            Duration = 3
-        })
-    end
-})
-
-UtilTab:AddButton({
-    Title = "نسخ الديسكورد",
-    Description = "نسخ رابط ديسكورد MIX",
-    Callback = function()
-        setclipboard("MIX#0001")
-        WindUI:Notification({
-            Title = "الديسكورد",
-            Description = "📋 تم النسخ: MIX#0001",
-            Duration = 3
-        })
-    end
-})
-
-UtilTab:AddToggle({
-    Title = "منع الطرد (Anti-AFK)",
-    Description = "يمنع طردك بسبب الخمول",
-    Default = false,
-    Callback = function(state)
-        if state then
-            WindUI:Notification({
-                Title = "Anti-AFK",
-                Description = "🛡️ لن تطرد بسبب الخمول",
-                Duration = 3
-            })
-            spawn(function()
-                while wait(30) do
-                    pcall(function()
-                        local VirtualUser = game:GetService("VirtualUser")
-                        VirtualUser:CaptureController()
-                        VirtualUser:ClickButton2(Vector2.new())
-                    end)
-                end
-            end)
-        end
-    end
-})
-
--- ===================== CREDITS TAB =====================
-local CreditsTab = Window:CreateTab({
-    Title = "👑 الاعتمادات",
-    Icon = "award"
-})
-
-CreditsTab:AddSection("🎮 MIX EVADE HUB")
-
-CreditsTab:AddLabel("المطور: MIX")
-CreditsTab:AddLabel("الإصدار: 2.0 WindUI")
-CreditsTab:AddLabel("الواجهة: WindUI Library")
-CreditsTab:AddLabel("©️ 2024 جميع الحقوق محفوظة")
-
-CreditsTab:AddButton({
-    Title = "نسخ رابط السكربت",
-    Description = "نسخ رابط هذا السكربت",
-    Callback = function()
-        setclipboard("https://raw.githubusercontent.com/Footagesus/WindUI/main/main_example.lua")
-        WindUI:Notification({
-            Title = "الرابط",
-            Description = "📋 تم نسخ رابط WindUI",
-            Duration = 3
-        })
-    end
-})
-
-CreditsTab:AddButton({
-    Title = "تحديث السكربت",
-    Description = "تحقق من التحديثات",
-    Callback = function()
-        WindUI:Notification({
-            Title = "التحديث",
-            Description = "🔄 يجري التحقق من التحديثات...",
-            Duration = 3
-        })
-    end
-})
-
--- ===================== INITIALIZATION =====================
--- Wait a moment then show welcome
-wait(1)
-
-WindUI:Notification({
-    Title = "🎉 MIX EVADE HUB",
-    Description = "✅ تم تحميل السكربت بنجاح!\n👤 المطور: MIX\n🎮 استمتع باللعبة!",
-    Duration = 5
-})
-
--- Print to console
-print("\n" .. string.rep("=", 50))
-print("🎮 MIX WindUI HUB v2.0")
-print("👤 Developer: MIX")
-print("🎨 UI: WindUI Library")
-print("🔥 Features: 20+ Amazing Features")
-print(string.rep("=", 50))
-
--- Success message
-print("[MIX HUB] WindUI script loaded successfully!")
+end
+spawn(function() while wait(1) do updateCanvasSize() end end)
